@@ -1,22 +1,38 @@
-import math
-def safe_apply(func, data):
-    results = []
-    errors = []
-    
-    for item in data:
-        try:
-            # Применение функ
-            result = func(item)
-            results.append(result)
-        except Exception as e:
-            errors.append((item, type(e).__name__))
-      return results, errors
+import pandas as pd
+import matplotlib.pyplot as plt
 
-# Демонстрация
-data = ['4', '16', 'text', '-25', '9.0']
-sqrt_func = lambda x: math.sqrt(float(x))
+# Создание DataFrame с тестовыми данными
+data = {
+    'Товар': ['Клубника', 'Малина', 'Манго'],
+    'Цена': [None, 350, 100],
+    'Количество': [200, 70, 400]
+}
 
-results, errors = safe_apply(sqrt_func, data)
+df = pd.DataFrame(data)
+print("Исходные данные:")
+print(df)
 
-print("Успешные результаты:", results)
-print("Ошибки:", errors)
+# Заполнение пропусков медиан.зн
+median_price = df['Цена'].median()
+df['Цена'].fillna(median_price, inplace=True)
+
+# Удаление выбросов
+df = df[(df['Количество'] >= 1) & (df['Количество'] <= 1000)]
+
+# Новый столбец
+df['Общая_стоимость'] = df['Цена'] * df['Количество']
+
+# Группировка
+revenue_by_product = df.groupby('Товар')['Общая_стоимость'].sum()
+
+print("\nВыручка по товарам:")
+print(revenue_by_product)
+
+# График
+plt.figure(figsize=(7, 3))
+revenue_by_product.plot(kind='bar', color=['red', 'blue', 'orange', 'yellow'])
+plt.title('Выручка по товарам')
+plt.xlabel('Товар')
+plt.ylabel('Выручка (руб)')
+plt.tight_layout()
+plt.show()
